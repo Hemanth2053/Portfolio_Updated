@@ -10,16 +10,12 @@ export default class Portfolio extends React.Component {
     const w = typeof window !== 'undefined' ? window.innerWidth : 1440;
     this.state = {
       d: null, narrow: w < 900, mid: w < 1180 && w >= 900, active: 'top',
-      counted: [0, 0, 0, 0], open: {}, barsIn: false, copied: false,
-      vTop: 0, sortKey: 'id', sortDir: 1, live: true, tick: 0, demosVisible: false,
-      nodes: [], nodeStates: {}, running: false, runStep: -1, dragId: null, everRan: false, hoverNav: null
+      counted: [0, 0, 0, 0], open: {}, barsIn: false, copied: false, hoverNav: null
     };
-    this._rows = [];
-    this._spark = new Array(23).fill(0.4);
     this.progressRef = React.createRef();
     this.clockRef = React.createRef();
     this.heroRef = React.createRef();
-    this.SECTIONS = ['top', 'stack', 'case', 'demos', 'own', 'lead', 'approach', 'contact'];
+    this.SECTIONS = ['top', 'stack', 'case', 'own', 'lead', 'approach', 'contact'];
   }
 
   get quiet() { return this.props.quiet === true; }
@@ -28,9 +24,8 @@ export default class Portfolio extends React.Component {
   componentDidMount() {
     const m = data;
     this._reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.buildRows(m.demos.table);
     const open = {}; open[m.runLog[0].entry] = true;
-    this.setState({ d: m, open, nodes: m.demos.composer.nodes.map(n => Object.assign({}, n)) });
+    this.setState({ d: m, open });
 
     const tickClock = () => {
       const el = this.clockRef.current;
@@ -67,7 +62,7 @@ export default class Portfolio extends React.Component {
 
     requestAnimationFrame(() => {
       this.initReveal(); this.splitHeadings();
-      this.recomputeActive(); this.watchDemos(); this.countUp();
+      this.recomputeActive(); this.countUp();
     });
   }
 
@@ -77,9 +72,6 @@ export default class Portfolio extends React.Component {
     clearInterval(this._clock);
     clearTimeout(this._copyT);
     if (this._io) this._io.disconnect();
-    if (this._demoIo) this._demoIo.disconnect();
-    if (this._runTimer) clearTimeout(this._runTimer);
-    this.stopMeters();
   }
 
   initReveal() {
@@ -138,18 +130,6 @@ export default class Portfolio extends React.Component {
     }
   }
 
-  watchDemos() {
-    const el = document.getElementById('demos');
-    if (!el || !('IntersectionObserver' in window)) { this.startMeters(); return; }
-    this._demoIo = new IntersectionObserver(es => {
-      const vis = es[0].isIntersecting;
-      if (vis === this.state.demosVisible) return;
-      this.setState({ demosVisible: vis });
-      if (vis) this.startMeters(); else this.stopMeters();
-    }, { rootMargin: '160px 0px' });
-    this._demoIo.observe(el);
-  }
-
   countUp() {
     const targets = [6, 8, 3, 4];
     if (this.calm) { this.setState({ counted: targets }); return; }
@@ -169,129 +149,9 @@ export default class Portfolio extends React.Component {
       const el = document.getElementById(id);
       if (!el) return;
       this._spyLock = Date.now() + 800;
-      const off = this.state.narrow ? 66 : 26;
-      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - off, behavior: this.calm ? 'auto' : 'smooth' });
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: this.calm ? 'auto' : 'smooth' });
       this.setState({ active: id });
     };
-  }
-
-  buildRows(cfg) {
-    let seed = 20260818;
-    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-    const states = ['OK', 'OK', 'OK', 'OK', 'RUNNING', 'QUEUED', 'FAILED'];
-    const rows = new Array(10000);
-    for (let i = 0; i < rows.length; i++) {
-      rows[i] = {
-        n: i, id: 'RUN-' + String(184213 - i).padStart(6, '0'),
-        job: cfg.jobs[Math.floor(rnd() * cfg.jobs.length)],
-        host: cfg.hosts[Math.floor(rnd() * cfg.hosts.length)],
-        secs: Math.floor(rnd() * 5400) + 4,
-        state: states[Math.floor(rnd() * states.length)]
-      };
-    }
-    this._rows = rows;
-    this.sortRows(this.state.sortKey, this.state.sortDir);
-  }
-
-  sortRows(key, dir) {
-    const k = key === 'id' ? 'n' : key;
-    this._rows.sort((a, b) => (a[k] === b[k] ? a.n - b.n : (a[k] > b[k] ? 1 : -1) * dir));
-  }
-
-  onSort(key) {
-    return () => {
-      const dir = this.state.sortKey === key ? -this.state.sortDir : 1;
-      this.sortRows(key, dir);
-      this.setState({ sortKey: key, sortDir: dir, tick: this.state.tick + 1 });
-    };
-  }
-
-  onTableScroll() {
-    return e => {
-      const top = e.currentTarget.scrollTop;
-      if (this._rafS) return;
-      this._rafS = requestAnimationFrame(() => { this._rafS = null; this.setState({ vTop: top }); });
-    };
-  }
-
-  startMeters() {
-    this.stopMeters();
-    if (this.calm) return;
-    this._liveTimer = setInterval(() => {
-      if (!this.state.live) return;
-      const cycle = { QUEUED: 'RUNNING', RUNNING: 'OK', OK: 'QUEUED', FAILED: 'QUEUED' };
-      const now = Date.now();
-      for (let i = 0; i < 6; i++) {
-        const r = this._rows[Math.floor(Math.random() * Math.min(600, this._rows.length))];
-        if (r) { r.state = cycle[r.state] || 'OK'; r.hit = now; }
-      }
-      this._spark = this._spark.slice(1).concat(0.25 + Math.random() * 0.7);
-      this.setState(s => ({ tick: s.tick + 1 }));
-    }, 1200);
-  }
-
-  stopMeters() {
-    if (this._liveTimer) clearInterval(this._liveTimer);
-    this._liveTimer = null;
-  }
-
-  moveNode(id, x, y) {
-    const maxX = 800 - 164 - 8;
-    this.setState(s => ({
-      nodes: s.nodes.map(n => (n.id === id
-        ? Object.assign({}, n, { x: Math.max(8, Math.min(maxX, x)), y: Math.max(8, Math.min(190, y)) })
-        : n))
-    }));
-  }
-
-  onNodeDown(id) {
-    return e => {
-      if (this.state.running) return;
-      e.preventDefault();
-      const node = this.state.nodes.find(n => n.id === id);
-      const ox = e.clientX - node.x, oy = e.clientY - node.y;
-      const move = ev => this.moveNode(id, Math.round((ev.clientX - ox) / 26) * 26, Math.round((ev.clientY - oy) / 26) * 26);
-      const up = () => {
-        window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
-        this.setState({ dragId: null });
-      };
-      window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
-      this.setState({ dragId: id });
-    };
-  }
-
-  onNodeKey(id) {
-    return e => {
-      const map = { ArrowLeft: [-26, 0], ArrowRight: [26, 0], ArrowUp: [0, -26], ArrowDown: [0, 26] };
-      const d = map[e.key];
-      if (!d || this.state.running) return;
-      e.preventDefault();
-      const n = this.state.nodes.find(x => x.id === id);
-      this.moveNode(id, n.x + d[0], n.y + d[1]);
-    };
-  }
-
-  runFlow() {
-    if (this.state.running) return;
-    const ids = this.state.nodes.map(n => n.id);
-    this.setState({ running: true, runStep: 0, nodeStates: {}, everRan: true });
-    const step = i => {
-      if (i >= ids.length) { this._runTimer = setTimeout(() => this.setState({ running: false, runStep: -1 }), 500); return; }
-      this.setState(s => ({ runStep: i, nodeStates: Object.assign({}, s.nodeStates, { [ids[i]]: 'RUNNING' }) }));
-      this._runTimer = setTimeout(() => {
-        this.setState(s => ({ nodeStates: Object.assign({}, s.nodeStates, { [ids[i]]: 'OK' }) }));
-        step(i + 1);
-      }, this.calm ? 180 : 620);
-    };
-    step(0);
-  }
-
-  resetFlow() {
-    if (this._runTimer) clearTimeout(this._runTimer);
-    const d = this.state.d;
-    this.setState({ running: false, runStep: -1, nodeStates: {}, nodes: d ? d.demos.composer.nodes.map(n => Object.assign({}, n)) : [] });
   }
 
   emailClick() {
@@ -339,26 +199,22 @@ export default class Portfolio extends React.Component {
     const accent = this.props.accent || '#7FA9F0';
     const calm = this.calm;
     const hair = 'rgba(168,185,212,.16)';
-    const panel = '#0C1A34', raised = '#12274A';
+    const panel = '#0C1A34';
     const rise = i => ({ display: 'inline-block', animation: calm ? 'none' : 'v5rise .9s cubic-bezier(.16,.84,.3,1) ' + (0.05 + i * 0.1) + 's both' });
 
     const activeIdx = Math.max(0, this.SECTIONS.indexOf(this.state.active));
-    const narrowMobile = narrow, narrowDesktop = !narrow;
-    const headerStyle = narrow
-      ? {
-          position: 'sticky', top: 0, zIndex: 120, display: 'flex', flexWrap: 'nowrap',
-          overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none',
-          gap: '8px', padding: '12px 16px', background: 'rgba(6,14,31,.82)', backdropFilter: 'blur(20px) saturate(160%)',
-          borderBottom: '1px solid rgba(168,185,212,.1)'
-        }
-      : {
-          position: 'fixed', bottom: '26px', left: '50%', transform: 'translateX(-50%)', zIndex: 120,
-          display: 'flex', alignItems: 'center', padding: '13px 20px', borderRadius: '999px',
-          background: 'rgba(6,14,31,.46)', backdropFilter: 'blur(26px) saturate(160%)',
-          border: '1px solid rgba(168,185,212,.09)', boxShadow: '0 20px 56px rgba(2,6,16,.32)'
-        };
+    const itemW = narrow ? 34 : 46;
+    const headerStyle = {
+      position: 'fixed', bottom: narrow ? 'max(16px, env(safe-area-inset-bottom))' : '26px',
+      left: '50%', transform: 'translateX(-50%)', zIndex: 120,
+      display: 'flex', alignItems: 'center', maxWidth: 'calc(100vw - 20px)',
+      overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none',
+      padding: narrow ? '11px 14px' : '13px 20px', borderRadius: '999px',
+      background: 'rgba(6,14,31,.62)', backdropFilter: 'blur(26px) saturate(160%)',
+      border: '1px solid rgba(168,185,212,.09)', boxShadow: '0 20px 56px rgba(2,6,16,.32)'
+    };
     const spineTrackStyle = {
-      position: 'absolute', top: '50%', left: '43px', right: '43px', height: '1px',
+      position: 'absolute', top: '50%', left: (itemW / 2) + 'px', right: (itemW / 2) + 'px', height: '1px',
       transform: 'translateY(-50%)', background: 'rgba(168,185,212,.18)', pointerEvents: 'none'
     };
     const spineFillStyle = {
@@ -368,21 +224,15 @@ export default class Portfolio extends React.Component {
       transition: 'width .55s cubic-bezier(.16,.84,.3,1)'
     };
     const hoverNav = this.state.hoverNav;
-    const navItems = [['top', 'Intro'], ['stack', 'Stack'], ['case', 'Work'], ['demos', 'Demos'], ['own', 'Projects'], ['lead', 'Experience'], ['approach', 'Approach'], ['contact', 'Contact']].map(n => {
+    const navItems = [['top', 'Intro'], ['stack', 'Stack'], ['case', 'Work'], ['own', 'Projects'], ['lead', 'Experience'], ['approach', 'Approach'], ['contact', 'Contact']].map(n => {
       const on = this.state.active === n[0];
       const shown = on || hoverNav === n[0];
       return {
         id: n[0], label: n[1], href: '#' + n[0], onClick: this.jump(n[0]), current: on ? 'true' : undefined,
         onEnter: () => this.setState({ hoverNav: n[0] }), onLeave: () => this.setState({ hoverNav: null }),
-        mobileStyle: {
-          font: "400 11px/1 'Space Grotesk', sans-serif", letterSpacing: '.06em', whiteSpace: 'nowrap',
-          color: on ? '#0A1830' : '#8DA0BF', background: on ? accent : 'rgba(8,17,38,.92)',
-          textDecoration: 'none', padding: '9px 12px', borderRadius: '999px', border: '1px solid rgba(168,185,212,.12)',
-          flex: 'none'
-        },
         rowStyle: {
           position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', textDecoration: 'none', width: '46px', height: '18px',
+          justifyContent: 'center', textDecoration: 'none', width: itemW + 'px', height: '18px', flex: 'none',
           cursor: 'pointer', WebkitTapHighlightColor: 'transparent'
         },
         dotStyle: {
@@ -404,14 +254,14 @@ export default class Portfolio extends React.Component {
         }
       };
     });
-    const mainStyle = { paddingTop: narrow ? '14px' : '20px', paddingBottom: narrow ? '0' : '58px', position: 'relative' };
+    const mainStyle = { paddingTop: '20px', paddingBottom: narrow ? '84px' : '96px', position: 'relative' };
     const progressStyle = {
       position: 'fixed', top: 0, left: 0, height: '2px', zIndex: 140, pointerEvents: 'none', width: '0%',
       background: 'linear-gradient(90deg, rgba(127,169,240,0), ' + accent + ')'
     };
 
     const sectionStyle = {
-      position: 'relative', zIndex: 2, scrollMarginTop: '90px',
+      position: 'relative', zIndex: 2, scrollMarginTop: '24px',
       padding: 'clamp(48px,6.4vh,84px) clamp(20px,5vw,72px)',
       maxWidth: '1440px', margin: '0 auto'
     };
@@ -651,115 +501,6 @@ export default class Portfolio extends React.Component {
       { name: 'MHADA housing portal', stack: 'React', line: 'Public-facing government portal delivered alongside both enterprise lines, held to the same review, responsiveness and cross-browser bar.', meta: 'Frontend delivery · public sector' }
     ].map(b => Object.assign({}, b, { style: Object.assign({}, cardBase, { minHeight: '176px' }) }));
 
-    const RH = 32, VH = 340;
-    const total = this._rows.length;
-    const start = Math.max(0, Math.floor(this.state.vTop / RH) - 2);
-    const slice = this._rows.slice(start, start + Math.ceil(VH / RH) + 4);
-    const sc = { OK: '#45C4B0', RUNNING: accent, QUEUED: '#8DA0BF', FAILED: '#FF7F6B' };
-    const colDefs = [['id', 'Run id'], ['job', 'Job'], ['host', 'Host'], ['secs', 'Dur'], ['state', 'State']];
-    const now = Date.now();
-    const table = {
-      spark: this._spark.map((v, i) => (i * (118 / 22)).toFixed(1) + ',' + (28 - v * 26).toFixed(1)).join(' '),
-      total: total.toLocaleString('en-US'), rowCount: total, inDom: slice.length + ' rows',
-      sortLabel: (this.state.sortKey === 'secs' ? 'Dur' : this.state.sortKey.charAt(0).toUpperCase() + this.state.sortKey.slice(1)) + (this.state.sortDir > 0 ? ' ↑' : ' ↓'),
-      liveLabel: this.state.live ? '❚❚ Pause feed' : '▶ Resume feed',
-      livePressed: !this.state.live,
-      onToggleLive: () => this.setState(s => ({ live: !s.live })),
-      liveBtnStyle: {
-        padding: '12px 16px', background: 'transparent', color: this.state.live ? accent : '#8DA0BF',
-        font: "400 12.5px/1 'Space Grotesk', sans-serif", letterSpacing: '.04em', whiteSpace: 'nowrap',
-        border: '1px solid ' + (this.state.live ? 'rgba(127,169,240,.42)' : hair), cursor: 'pointer'
-      },
-      onScroll: this.onTableScroll(),
-      spacerStyle: { height: (total * RH) + 'px', position: 'relative' },
-      windowStyle: { position: 'absolute', top: (start * RH) + 'px', left: 0, right: 0 },
-      cols: colDefs.map(c => {
-        const isSorted = this.state.sortKey === c[0];
-        return {
-          key: c[0], label: c[1], onClick: this.onSort(c[0]),
-          sort: isSorted ? (this.state.sortDir > 0 ? 'ascending' : 'descending') : 'none',
-          cellStyle: { display: 'flex', justifyContent: (c[0] === 'secs' || c[0] === 'state') ? 'flex-end' : 'flex-start' },
-          style: {
-            background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
-            padding: '14px 0', paddingLeft: c[0] === 'state' ? '14px' : 0,
-            font: "400 10.5px/1 'JetBrains Mono', monospace", letterSpacing: '.16em', whiteSpace: 'nowrap',
-            color: isSorted ? accent : '#8DA0BF'
-          }
-        };
-      }),
-      rows: slice.map((r, i) => ({
-        key: r.n, id: r.id, job: r.job, host: r.host, ariaIndex: start + i + 1,
-        dur: r.secs > 59 ? Math.floor(r.secs / 60) + 'm ' + (r.secs % 60) + 's' : r.secs + 's',
-        state: r.state,
-        style: {
-          height: RH + 'px', display: 'grid', gridTemplateColumns: '124px minmax(96px,1fr) 110px 82px 96px',
-          alignItems: 'center', borderBottom: '1px solid rgba(211,224,247,.05)',
-          background: r.hit && now - r.hit < 1100 ? 'rgba(127,169,240,.07)' : 'transparent',
-          transition: 'background .8s ease'
-        },
-        stateStyle: {
-          font: "400 10px/1 'JetBrains Mono', monospace", letterSpacing: '.14em', color: sc[r.state],
-          justifySelf: 'end', border: '1px solid ' + sc[r.state] + '33', padding: '5px 8px'
-        }
-      }))
-    };
-
-    const nodes = this.state.nodes || [];
-    const NW = 164, NH = 86;
-    const ran = this.state.everRan;
-    const composer = {
-      status: this.state.running ? 'Executing · step ' + (this.state.runStep + 1) + ' of ' + nodes.length : (ran ? 'Completed · edit and run again' : 'Idle'),
-      runLabel: this.state.running ? 'Running…' : (ran ? '▶ Run again' : '▶ Run flow'),
-      onRun: () => this.runFlow(), onReset: () => this.resetFlow(),
-      hint: this.state.dragId ? 'Snapping to 26px grid' : 'Drag a node · or focus one and use arrow keys',
-      hintStyle: {
-        position: 'absolute', left: '14px', bottom: '12px', font: "400 11px/1 'JetBrains Mono', monospace",
-        letterSpacing: '.1em', color: this.state.dragId ? accent : 'rgba(141,160,191,.92)',
-        transition: 'color .3s ease', pointerEvents: 'none'
-      },
-      runBtnStyle: {
-        padding: '12px 17px', background: this.state.running ? 'rgba(127,169,240,.14)' : accent,
-        color: this.state.running ? accent : '#081434', font: "500 12.5px/1 'Space Grotesk', sans-serif",
-        letterSpacing: '.04em', whiteSpace: 'nowrap', border: '1px solid ' + accent,
-        cursor: this.state.running ? 'default' : 'pointer'
-      },
-      resetBtnStyle: {
-        padding: '12px 16px', background: 'transparent', color: '#8DA0BF',
-        font: "400 12.5px/1 'Space Grotesk', sans-serif", letterSpacing: '.04em', whiteSpace: 'nowrap',
-        border: '1px solid ' + hair, cursor: 'pointer'
-      },
-      edges: nodes.slice(0, -1).map((n, i) => {
-        const m2 = nodes[i + 1];
-        const x1 = n.x + NW, y1 = n.y + NH / 2, x2 = m2.x, y2 = m2.y + NH / 2, midx = (x1 + x2) / 2;
-        const hot = this.state.running && this.state.runStep > i;
-        return {
-          key: n.id,
-          d: 'M' + x1 + ' ' + y1 + ' C' + midx + ' ' + y1 + ', ' + midx + ' ' + y2 + ', ' + x2 + ' ' + y2,
-          stroke: hot ? '#45C4B0' : 'rgba(211,224,247,.2)', width: hot ? 1.6 : 1, dash: hot ? '0' : '4 6'
-        };
-      }),
-      nodes: nodes.map((n, i) => {
-        const st = this.state.nodeStates[n.id];
-        const act = this.state.running && this.state.runStep === i;
-        const col = st === 'OK' ? '#45C4B0' : (st === 'RUNNING' ? accent : 'rgba(211,224,247,.16)');
-        return {
-          key: n.id, label: n.label, kind: n.kind, state: st ? (st === 'OK' ? 'Done' : 'Running') : 'Ready',
-          aria: n.label + ' node, step ' + (i + 1) + ' of ' + nodes.length + '. Drag or use arrow keys to move.',
-          onPointerDown: this.onNodeDown(n.id), onKeyDown: this.onNodeKey(n.id),
-          style: {
-            position: 'absolute', left: n.x + 'px', top: n.y + 'px', width: NW + 'px', height: NH + 'px',
-            background: raised, border: '1px solid ' + col,
-            boxShadow: act ? '0 0 0 4px rgba(127,169,240,.12)' : 'none',
-            padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            cursor: this.state.dragId === n.id ? 'grabbing' : 'grab', touchAction: 'none', userSelect: 'none',
-            transition: 'border-color .35s ease, box-shadow .35s ease'
-          },
-          dotStyle: { width: '5px', height: '5px', borderRadius: '50%', background: col },
-          stateStyle: { font: "400 10.5px/1 'Space Grotesk', sans-serif", letterSpacing: '.1em', color: st ? col : '#8DA0BF' }
-        };
-      })
-    };
-
     const builds = d ? d.builds : [];
     const featureRaw = builds.find(b => b.featured) || { name: '', kind: '', body: '', tech: [], url: '', repo: '' };
     const feature = Object.assign({}, featureRaw, { hasRepo: !!(featureRaw.repo && featureRaw.url) });
@@ -812,7 +553,8 @@ export default class Portfolio extends React.Component {
       },
       valueStyle: {
         flex: 1, minWidth: 0, textAlign: 'right',
-        font: "400 14px/1.4 'Space Grotesk', sans-serif", color: '#EDF2FB', whiteSpace: 'nowrap'
+        font: "400 14px/1.4 'Space Grotesk', sans-serif", color: '#EDF2FB',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
       }
     }));
     const locationStyle = {
@@ -821,7 +563,8 @@ export default class Portfolio extends React.Component {
     };
     const locationValueStyle = {
       flex: 1, minWidth: 0, textAlign: 'right',
-      font: "400 14px/1.4 'Space Grotesk', sans-serif", color: '#C4D2E8', whiteSpace: 'nowrap'
+      font: "400 14px/1.4 'Space Grotesk', sans-serif", color: '#C4D2E8',
+      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
     };
     const contactPrimaryStyle = {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '18px',
@@ -829,7 +572,7 @@ export default class Portfolio extends React.Component {
     };
 
     return {
-      headerStyle, navItems, narrowMobile, narrowDesktop, spineTrackStyle, spineFillStyle,
+      headerStyle, navItems, spineTrackStyle, spineFillStyle,
       contactJump: this.jump('contact'), resumeClick: this.openResume(), emailClick: this.emailClick(),
       copyNote: this.state.copied ? 'Address copied — hemanthr2053@gmail.com' : 'Opens your mail app',
       copyNoteStyle: {
@@ -848,7 +591,7 @@ export default class Portfolio extends React.Component {
       counters, counterNumStyle, statOuterStyle, statGridStyle, leadCards, leadGridStyle, buildGridStyle, contactGridStyle,
       timelineRows, timelineYears, axisRowStyle, logRows,
       caseCols, caseDivider, caseFacts, caseSteps, briefCases,
-      table, composer, feature, featCols, featSideStyle, featLayers, otherBuilds,
+      feature, featCols, featSideStyle, featLayers, otherBuilds,
       approach, approachGridStyle,
       contacts, contactPrimaryStyle, locationStyle, locationValueStyle
     };
@@ -863,21 +606,14 @@ export default class Portfolio extends React.Component {
         <div aria-hidden="true" ref={this.progressRef} style={v.progressStyle}></div>
 
         <nav aria-label="Sections" style={v.headerStyle}>
-          {v.narrowMobile && v.navItems.map(n => (
-            <a key={n.id} href={n.href} onClick={n.onClick} aria-current={n.current} style={n.mobileStyle}>{n.label}</a>
+          <div aria-hidden="true" style={v.spineTrackStyle}><div style={v.spineFillStyle}></div></div>
+          {v.navItems.map(n => (
+            <a key={n.id} href={n.href} onClick={n.onClick} onMouseEnter={n.onEnter} onMouseLeave={n.onLeave}
+               onFocus={n.onEnter} onBlur={n.onLeave} aria-current={n.current} aria-label={n.label} style={n.rowStyle}>
+              <span aria-hidden="true" style={n.dotStyle}></span>
+              <span aria-hidden="true" style={n.labelStyle}>{n.label}</span>
+            </a>
           ))}
-          {v.narrowDesktop && (
-            <React.Fragment>
-              <div aria-hidden="true" style={v.spineTrackStyle}><div style={v.spineFillStyle}></div></div>
-              {v.navItems.map(n => (
-                <a key={n.id} href={n.href} onClick={n.onClick} onMouseEnter={n.onEnter} onMouseLeave={n.onLeave}
-                   onFocus={n.onEnter} onBlur={n.onLeave} aria-current={n.current} aria-label={n.label} style={n.rowStyle}>
-                  <span aria-hidden="true" style={n.dotStyle}></span>
-                  <span aria-hidden="true" style={n.labelStyle}>{n.label}</span>
-                </a>
-              ))}
-            </React.Fragment>
-          )}
         </nav>
 
         <main style={v.mainStyle}>
@@ -1004,111 +740,6 @@ export default class Portfolio extends React.Component {
                 </article>
               ))}
             </div>
-          </section>
-
-          <section id="demos" style={v.sectionStyle}>
-            <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>LIVE DEMOS</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
-                <h2 data-split style={v.h2Style}>Running code, not screenshots</h2>
-                <span aria-hidden="true" style={hairLine}></span>
-              </div>
-              <p style={v.sectionLeadStyle}>My employer's products can't be shown, so I rebuilt their two hardest interface behaviours here from scratch. <span style={{ color: '#EDF2FB' }}>The technique is real and live in your browser; the data is synthetic.</span></p>
-            </div>
-
-            <article data-r style={{ border: '1px solid rgba(168,185,212,.16)', background: '#0C1A34' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', padding: '24px clamp(18px,2.4vw,30px) 22px', borderBottom: '1px solid rgba(168,185,212,.16)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '56ch' }}>
-                  <span style={{ font: "400 11px/1 'JetBrains Mono', monospace", letterSpacing: '.18em', color: '#7FA9F0' }}>Demo one</span>
-                  <h3 style={{ margin: 0, font: "500 clamp(20px,2vw,25px)/1.24 'Sora', sans-serif", letterSpacing: '-.02em', color: '#EDF2FB' }}>Ten thousand runs, twelve rows in the DOM</h3>
-                  <p style={{ margin: 0, font: "300 14.5px/1.68 'Space Grotesk', sans-serif", color: '#A8B9D4', textWrap: 'pretty' }}>Windowed rendering over 10,000 records with sortable columns and a live status feed. Sort a column, scroll hard, pause the feed.</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <svg width="118" height="30" viewBox="0 0 118 30" aria-hidden="true" style={{ overflow: 'visible' }}>
-                    <polyline points={v.table.spark} fill="none" stroke="#7FA9F0" strokeWidth="1.4" strokeLinejoin="round"></polyline>
-                  </svg>
-                  <button type="button" onClick={v.table.onToggleLive} aria-pressed={v.table.livePressed} style={v.table.liveBtnStyle}>{v.table.liveLabel}</button>
-                </div>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div role="table" aria-label="Synthetic run log, 10,000 records" aria-rowcount={v.table.rowCount} style={{ minWidth: '508px' }}>
-                  <div role="rowgroup">
-                    <div role="row" style={{ display: 'grid', gridTemplateColumns: '124px minmax(96px,1fr) 110px 82px 96px', padding: '0 clamp(14px,2vw,26px)', borderBottom: '1px solid rgba(168,185,212,.16)' }}>
-                      {v.table.cols.map(c => (
-                        <span key={c.key} role="columnheader" aria-sort={c.sort} style={c.cellStyle}>
-                          <button type="button" onClick={c.onClick} style={c.style}>{c.label}</button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div role="rowgroup" onScroll={v.table.onScroll} tabIndex={0} aria-label="Run rows, scrollable"
-                       style={{ height: '340px', overflowY: 'auto', position: 'relative', padding: '0 clamp(14px,2vw,26px)' }}>
-                    <div role="presentation" style={v.table.spacerStyle}><div role="presentation" style={v.table.windowStyle}>
-                      {v.table.rows.map(r => (
-                        <div key={r.key} role="row" aria-rowindex={r.ariaIndex} style={r.style}>
-                          <span role="rowheader" style={{ font: "400 11.5px/1.4 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.id}</span>
-                          <span role="cell" style={{ font: "400 13px/1 'Space Grotesk', sans-serif", color: '#EDF2FB', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.job}</span>
-                          <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.host}</span>
-                          <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#C4D2E8', textAlign: 'right' }}>{r.dur}</span>
-                          <span role="cell" style={r.stateStyle}>{r.state}</span>
-                        </div>
-                      ))}
-                    </div></div>
-                  </div>
-                </div>
-                </div>
-                {v.narrowMobile && (
-                  <span aria-hidden="true" style={{
-                    position: 'absolute', top: 0, right: 0, bottom: 0, width: '28px', pointerEvents: 'none',
-                    background: 'linear-gradient(90deg, transparent, #0C1A34)'
-                  }}></span>
-                )}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', padding: '15px clamp(14px,2vw,26px)', borderTop: '1px solid rgba(168,185,212,.16)', font: "400 10.5px/1.6 'JetBrains Mono', monospace", letterSpacing: '.12em', color: '#8DA0BF' }}>
-                <span>Rows <span style={{ color: '#EDF2FB' }}>{v.table.total}</span></span>
-                <span>In DOM <span style={{ color: '#7FA9F0' }}>{v.table.inDom}</span></span>
-                <span aria-live="polite">Sort <span style={{ color: '#EDF2FB' }}>{v.table.sortLabel}</span></span>
-              </div>
-            </article>
-
-            <article data-r style={{ marginTop: '1px', border: '1px solid rgba(168,185,212,.16)', borderTop: 'none', background: '#0C1A34' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', padding: '24px clamp(18px,2.4vw,30px) 22px', borderBottom: '1px solid rgba(168,185,212,.16)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '56ch' }}>
-                  <span style={{ font: "400 11px/1 'JetBrains Mono', monospace", letterSpacing: '.18em', color: '#7FA9F0' }}>Demo two</span>
-                  <h3 style={{ margin: 0, font: "500 clamp(20px,2vw,25px)/1.24 'Sora', sans-serif", letterSpacing: '-.02em', color: '#EDF2FB' }}>Author a flow, then watch it execute</h3>
-                  <p style={{ margin: 0, font: "300 14.5px/1.68 'Space Grotesk', sans-serif", color: '#A8B9D4', textWrap: 'pretty' }}>Drag any node — pointer or arrow keys once focused — and the edges re-route on a snapped grid. Run it and each step reports its own state.</p>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button type="button" onClick={v.composer.onRun} style={v.composer.runBtnStyle}>{v.composer.runLabel}</button>
-                  <button type="button" onClick={v.composer.onReset} style={v.composer.resetBtnStyle}>Reset</button>
-                </div>
-              </div>
-              <div style={{ overflowX: 'auto', position: 'relative' }}>
-                <div style={{ position: 'relative', minWidth: '800px', height: '296px', backgroundImage: 'radial-gradient(rgba(211,224,247,.07) 1px, transparent 1px)', backgroundSize: '26px 26px' }}>
-                  <svg width="100%" height="296" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} aria-hidden="true">
-                    {v.composer.edges.map(e => (
-                      <path key={e.key} d={e.d} fill="none" stroke={e.stroke} strokeWidth={e.width} strokeDasharray={e.dash}></path>
-                    ))}
-                  </svg>
-                  {v.composer.nodes.map(n => (
-                    <div key={n.key} tabIndex={0} role="button" aria-label={n.aria} onPointerDown={n.onPointerDown} onKeyDown={n.onKeyDown} style={n.style}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ font: "400 10.5px/1 'Space Grotesk', sans-serif", letterSpacing: '.12em', color: '#8DA0BF' }}>{n.kind}</span>
-                        <span aria-hidden="true" style={n.dotStyle}></span>
-                      </div>
-                      <span style={{ font: "500 16px/1.2 'Sora', sans-serif", letterSpacing: '-.018em', color: '#EDF2FB' }}>{n.label}</span>
-                      <span style={n.stateStyle}>{n.state}</span>
-                    </div>
-                  ))}
-                  <span aria-hidden="true" style={v.composer.hintStyle}>{v.composer.hint}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', padding: '15px clamp(14px,2vw,26px)', borderTop: '1px solid rgba(168,185,212,.16)', font: "400 10.5px/1.6 'JetBrains Mono', monospace", letterSpacing: '.12em', color: '#8DA0BF' }}>
-                <span>Grid snap <span style={{ color: '#EDF2FB' }}>26px</span></span>
-                <span aria-live="polite">Status <span style={{ color: '#7FA9F0' }}>{v.composer.status}</span></span>
-              </div>
-            </article>
           </section>
 
           <section id="own" style={v.sectionStyle}>
