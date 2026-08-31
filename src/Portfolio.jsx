@@ -267,7 +267,7 @@ export default class Portfolio extends React.Component {
     };
     const contactSectionStyle = Object.assign({}, sectionStyle, { paddingBottom: 'clamp(44px,6vh,72px)' });
     const headBlockStyle = { display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: 'clamp(28px,3.4vw,44px)' };
-    const eyebrowStyle = { font: "400 10.5px/1 'JetBrains Mono', monospace", letterSpacing: '.24em', color: accent };
+    const eyebrowStyle = { font: "500 clamp(13px,1.15vw,15px)/1.3 'JetBrains Mono', monospace", letterSpacing: '.06em', color: accent };
     const sectionLeadStyle = {
       margin: 0, maxWidth: '66ch',
       font: "300 clamp(16px,1.35vw,18px)/1.7 'Space Grotesk', sans-serif", color: '#C4D2E8', textWrap: 'pretty'
@@ -301,7 +301,7 @@ export default class Portfolio extends React.Component {
       position: 'absolute', left: '50%', top: narrow ? '58%' : '62%', zIndex: 0, pointerEvents: 'none',
       width: narrow ? 'min(680px, 132vw)' : 'min(1180px, 104%)',
       height: narrow ? 'min(680px, 132vw)' : 'min(1180px, 104%)',
-      transform: 'translate(-50%,-50%)', opacity: narrow ? 0.2 : (calm ? 0.24 : 0.28),
+      transform: 'translate(-50%,-50%)', opacity: calm ? 0.24 : 0.28,
       WebkitMaskImage: 'radial-gradient(closest-side, #000 62%, rgba(0,0,0,.35) 84%, transparent 100%)',
       maskImage: 'radial-gradient(closest-side, #000 62%, rgba(0,0,0,.35) 84%, transparent 100%)'
     };
@@ -313,7 +313,7 @@ export default class Portfolio extends React.Component {
     };
     const heroGlowStyle = {
       position: 'absolute', left: '50%', top: narrow ? '74%' : '78%', zIndex: 0, pointerEvents: 'none',
-      width: 'min(980px, 100%)', height: 'min(620px, 86vw)', transform: 'translate(-50%,-50%)',
+      width: 'min(980px, 220vw)', height: 'min(620px, 140vw)', transform: 'translate(-50%,-50%)',
       background: 'radial-gradient(closest-side, rgba(127,169,240,.1), rgba(90,169,255,.045) 55%, transparent 78%)'
     };
     const ctaPrimary = {
@@ -661,7 +661,7 @@ export default class Portfolio extends React.Component {
 
           <section id="stack" style={v.sectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>ENGINEERING EXPERTISE</span>
+              <span style={v.eyebrowStyle}>Engineering Expertise</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>What I work in</h2>
                 <span aria-hidden="true" style={hairLine}></span>
@@ -685,7 +685,7 @@ export default class Portfolio extends React.Component {
 
           <section id="case" style={v.sectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>SELECTED WORK</span>
+              <span style={v.eyebrowStyle}>Selected Work</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>The hard one</h2>
                 <span aria-hidden="true" style={hairLine}></span>
@@ -739,7 +739,7 @@ export default class Portfolio extends React.Component {
 
           <section id="own" style={v.sectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>PROJECTS</span>
+              <span style={v.eyebrowStyle}>Projects</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>My own projects</h2>
                 <span aria-hidden="true" style={hairLine}></span>
@@ -796,7 +796,7 @@ export default class Portfolio extends React.Component {
 
           <section id="lead" style={v.sectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>EXPERIENCE &amp; LEADERSHIP</span>
+              <span style={v.eyebrowStyle}>Experience &amp; Leadership</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>Experience and leadership</h2>
                 <span aria-hidden="true" style={hairLine}></span>
@@ -874,7 +874,7 @@ export default class Portfolio extends React.Component {
 
           <section id="approach" style={v.sectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>ENGINEERING APPROACH</span>
+              <span style={v.eyebrowStyle}>Engineering Approach</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>How I work</h2>
                 <span aria-hidden="true" style={hairLine}></span>
@@ -894,7 +894,7 @@ export default class Portfolio extends React.Component {
 
           <section id="contact" style={v.contactSectionStyle}>
             <div data-r style={v.headBlockStyle}>
-              <span style={v.eyebrowStyle}>CONTACT</span>
+              <span style={v.eyebrowStyle}>Contact</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '18px' }}>
                 <h2 data-split style={v.h2Style}>Get in touch</h2>
                 <span aria-hidden="true" style={hairLine}></span>
