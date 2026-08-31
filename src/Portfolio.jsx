@@ -345,7 +345,12 @@ export default class Portfolio extends React.Component {
     const activeIdx = Math.max(0, this.SECTIONS.indexOf(this.state.active));
     const narrowMobile = narrow, narrowDesktop = !narrow;
     const headerStyle = narrow
-      ? { position: 'sticky', top: '10px', zIndex: 120, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '6px', padding: '0 10px' }
+      ? {
+          position: 'sticky', top: 0, zIndex: 120, display: 'flex', flexWrap: 'nowrap',
+          overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none',
+          gap: '8px', padding: '12px 16px', background: 'rgba(6,14,31,.82)', backdropFilter: 'blur(20px) saturate(160%)',
+          borderBottom: '1px solid rgba(168,185,212,.1)'
+        }
       : {
           position: 'fixed', bottom: '26px', left: '50%', transform: 'translateX(-50%)', zIndex: 120,
           display: 'flex', alignItems: 'center', padding: '13px 20px', borderRadius: '999px',
@@ -372,7 +377,8 @@ export default class Portfolio extends React.Component {
         mobileStyle: {
           font: "400 11px/1 'Space Grotesk', sans-serif", letterSpacing: '.06em', whiteSpace: 'nowrap',
           color: on ? '#0A1830' : '#8DA0BF', background: on ? accent : 'rgba(8,17,38,.92)',
-          textDecoration: 'none', padding: '9px 12px', borderRadius: '999px', border: '1px solid rgba(168,185,212,.12)'
+          textDecoration: 'none', padding: '9px 12px', borderRadius: '999px', border: '1px solid rgba(168,185,212,.12)',
+          flex: 'none'
         },
         rowStyle: {
           position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center',
