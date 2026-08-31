@@ -349,12 +349,12 @@ export default class Portfolio extends React.Component {
       display: 'grid', gap: 'clamp(20px,2.4vw,34px)',
       gridTemplateColumns: narrow ? '1fr' : (mid ? 'repeat(2, minmax(0,1fr))' : 'repeat(4, minmax(0,1fr))')
     };
-    const stackColumns = stackGroupsRaw.map(g => ({ label: g.group.toUpperCase(), items: g.items, muted: false }))
-      .concat(also.length ? [{ label: 'ALSO WORKED WITH', items: also, muted: true }] : [])
+    const stackColumns = stackGroupsRaw.map(g => ({ label: g.group, items: g.items, muted: false }))
+      .concat(also.length ? [{ label: 'Also worked with', items: also, muted: true }] : [])
       .map(g => ({
         label: g.label, line: g.items.join(', '),
         style: { display: 'flex', flexDirection: 'column', gap: '11px', paddingTop: '14px', borderTop: '1px solid ' + (g.muted ? 'rgba(168,185,212,.12)' : 'rgba(127,169,240,.34)') },
-        labelStyle: { font: "400 10px/1.4 'JetBrains Mono', monospace", letterSpacing: '.2em', color: g.muted ? '#8DA0BF' : '#7FA9F0' },
+        labelStyle: { font: "500 12.5px/1.4 'JetBrains Mono', monospace", letterSpacing: '.04em', color: g.muted ? '#8DA0BF' : '#7FA9F0' },
         lineStyle: { font: "300 14px/1.75 'Space Grotesk', sans-serif", color: g.muted ? '#8DA0BF' : '#A8B9D4', textWrap: 'pretty' }
       }));
     const coreCount = d ? d.stack[0].items.length : 0;
@@ -706,7 +706,7 @@ export default class Portfolio extends React.Component {
             <article data-r style={{ border: '1px solid rgba(168,185,212,.16)', background: '#0C1A34' }}>
               <div style={{ display: 'grid', gridTemplateColumns: v.caseCols, gap: 0 }}>
                 <div style={{ padding: 'clamp(26px,3.2vw,42px)', display: 'flex', flexDirection: 'column', gap: '16px', borderRight: v.caseDivider }}>
-                  <span style={{ font: "400 10.5px/1 'JetBrains Mono', monospace", letterSpacing: '.2em', color: '#7FA9F0' }}>Continuity Patrol · React + TypeScript</span>
+                  <span style={{ font: "500 12.5px/1.4 'JetBrains Mono', monospace", letterSpacing: '.04em', color: '#7FA9F0' }}>Continuity Patrol · React + TypeScript</span>
                   <h3 style={{ margin: 0, font: "600 clamp(23px,2.4vw,32px)/1.16 'Sora', sans-serif", letterSpacing: '-.025em', color: '#EDF2FB' }}>Screens that stay open for an eight-hour shift</h3>
                   <p style={{ margin: 0, font: "300 16px/1.72 'Space Grotesk', sans-serif", color: '#A8B9D4', textWrap: 'pretty' }}>Business-continuity monitoring: replication checks, failover drills and thousands of runs, all needing to stay legible while state changes underneath the operator. Two failure modes matter here and neither is visual — the page degrading as data grows, and the operator losing track of what changed.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: '16px', paddingTop: '14px', marginTop: 'auto', borderTop: '1px solid rgba(168,185,212,.12)' }}>
@@ -773,7 +773,7 @@ export default class Portfolio extends React.Component {
                 )}
               </div>
               <div style={v.featSideStyle}>
-                <span style={{ font: "400 10px/1 'JetBrains Mono', monospace", letterSpacing: '.2em', color: '#8DA0BF' }}>ARCHITECTURE</span>
+                <span style={{ font: "500 12.5px/1.4 'JetBrains Mono', monospace", letterSpacing: '.04em', color: '#8DA0BF' }}>Architecture</span>
                 {v.featLayers.map(l => (
                   <div key={l.n} style={{ display: 'grid', gridTemplateColumns: '22px 1fr', gap: '12px', alignItems: 'baseline' }}>
                     <span style={{ font: "400 10px/1.6 'JetBrains Mono', monospace", color: '#7FA9F0' }}>{l.n}</span>
@@ -816,7 +816,7 @@ export default class Portfolio extends React.Component {
             <div data-r style={v.leadGridStyle}>
               {v.leadCards.map(l => (
                 <article key={l.title} style={l.style}>
-                  <span style={{ font: "500 11.5px/1.4 'JetBrains Mono', monospace", letterSpacing: '.16em', color: '#7FA9F0' }}>{l.metric}</span>
+                  <span style={{ font: "500 12.5px/1.4 'JetBrains Mono', monospace", letterSpacing: '.04em', color: '#7FA9F0' }}>{l.metric}</span>
                   <h3 style={{ margin: 0, font: "500 clamp(19px,1.9vw,23px)/1.24 'Sora', sans-serif", letterSpacing: '-.018em', color: '#EDF2FB' }}>{l.title}</h3>
                   <p style={{ margin: 0, font: "300 15px/1.68 'Space Grotesk', sans-serif", color: '#A8B9D4', textWrap: 'pretty' }}>{l.body}</p>
                   <span style={l.barStyle}></span>
