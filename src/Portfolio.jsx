@@ -290,10 +290,6 @@ export default class Portfolio extends React.Component {
       margin: 0, font: "500 clamp(28px,3.1vw,44px)/1.1 'Sora', sans-serif",
       letterSpacing: '-.024em', color: '#EDF2FB'
     };
-    const heroRule = {
-      width: '56px', height: '2px', background: accent, transformOrigin: 'center', margin: '0 auto',
-      animation: calm ? 'none' : 'v5draw .85s cubic-bezier(.16,.84,.3,1) .55s both'
-    };
     const bodyLead = { margin: '0 auto', maxWidth: '60ch', font: "300 clamp(17px,1.5vw,22px)/1.6 'Space Grotesk', sans-serif", color: '#C4D2E8', textWrap: 'pretty' };
 
     const heroInnerStyle = {
@@ -581,7 +577,7 @@ export default class Portfolio extends React.Component {
       },
       mainStyle, progressStyle,
       sectionStyle, contactSectionStyle, headBlockStyle, eyebrowStyle, sectionLeadStyle,
-      heroStyle, heroInnerStyle, heroArtStyle, heroArtFloatStyle, heroGlowStyle, heroTitleStyle, h2Style, heroRule,
+      heroStyle, heroInnerStyle, heroArtStyle, heroArtFloatStyle, heroGlowStyle, heroTitleStyle, h2Style,
       riseA: rise(0),
       riseMeta: Object.assign({}, rise(1), { display: 'block' }),
       riseC: Object.assign({}, rise(2), bodyLead, { display: 'block' }),
@@ -629,7 +625,6 @@ export default class Portfolio extends React.Component {
               <h1 ref={this.heroRef} style={v.heroTitleStyle}>
                 <span style={{ display: 'block', overflow: 'hidden' }}><span style={v.riseA}>Hemanth Kumar R</span></span>
               </h1>
-              <div aria-hidden="true" style={v.heroRule}></div>
               <div style={{ overflow: 'hidden' }}><div style={v.riseMeta}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '11px 18px', font: "400 clamp(15px,1.45vw,18px)/1.5 'Space Grotesk', sans-serif" }}>
                   <span style={{ flex: 'none', whiteSpace: 'nowrap', fontWeight: 500, color: '#EDF2FB' }}>Senior Frontend Engineer · Frontend Team Lead</span>
