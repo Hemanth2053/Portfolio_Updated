@@ -226,7 +226,7 @@ export default class Portfolio extends React.Component {
     const hoverNav = this.state.hoverNav;
     const navItems = [['top', 'Intro'], ['stack', 'Stack'], ['case', 'Work'], ['own', 'Projects'], ['lead', 'Experience'], ['approach', 'Approach'], ['contact', 'Contact']].map(n => {
       const on = this.state.active === n[0];
-      const shown = on || hoverNav === n[0];
+      const shown = hoverNav === n[0];
       return {
         id: n[0], label: n[1], href: '#' + n[0], onClick: this.jump(n[0]), current: on ? 'true' : undefined,
         onEnter: () => this.setState({ hoverNav: n[0] }), onLeave: () => this.setState({ hoverNav: null }),
@@ -254,6 +254,15 @@ export default class Portfolio extends React.Component {
         }
       };
     });
+    const activeLabel = (navItems.find(n => n.current === 'true') || navItems[0]).label;
+    const activeLabelStyle = {
+      position: 'fixed', left: '50%', transform: 'translateX(-50%)', zIndex: 121,
+      bottom: narrow ? 'calc(max(16px, env(safe-area-inset-bottom)) + 50px)' : '80px',
+      display: 'flex', alignItems: 'center', gap: '7px', padding: '7px 14px', borderRadius: '999px',
+      background: 'rgba(8,17,38,.88)', border: '1px solid rgba(168,185,212,.14)',
+      font: "500 11.5px/1 'Space Grotesk', sans-serif", letterSpacing: '.05em', color: '#EDF2FB',
+      whiteSpace: 'nowrap', pointerEvents: 'none', boxShadow: '0 10px 24px rgba(2,6,16,.28)'
+    };
     const mainStyle = { paddingTop: '20px', paddingBottom: narrow ? '84px' : '96px', position: 'relative' };
     const progressStyle = {
       position: 'fixed', top: 0, left: 0, height: '2px', zIndex: 140, pointerEvents: 'none', width: '0%',
@@ -568,7 +577,7 @@ export default class Portfolio extends React.Component {
     };
 
     return {
-      headerStyle, navItems, spineTrackStyle, spineFillStyle,
+      headerStyle, navItems, spineTrackStyle, spineFillStyle, activeLabel, activeLabelStyle,
       contactJump: this.jump('contact'), resumeClick: this.openResume(), emailClick: this.emailClick(),
       copyNote: this.state.copied ? 'Address copied — hemanthr2053@gmail.com' : 'Opens your mail app',
       copyNoteStyle: {
@@ -601,6 +610,7 @@ export default class Portfolio extends React.Component {
         <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(130vw 53vw at 50% -6.25vw, rgba(127,169,240,.1), transparent 78%),radial-gradient(110vw 50vw at 88% 6.25vw, rgba(90,169,255,.08), transparent 75%),linear-gradient(180deg,#081434 0%,#060E1F 46%,#050B18 100%)' }}></div>
         <div aria-hidden="true" ref={this.progressRef} style={v.progressStyle}></div>
 
+        <div aria-hidden="true" style={v.activeLabelStyle}>{v.activeLabel}</div>
         <nav aria-label="Sections" style={v.headerStyle}>
           <div aria-hidden="true" style={v.spineTrackStyle}><div style={v.spineFillStyle}></div></div>
           {v.navItems.map(n => (
