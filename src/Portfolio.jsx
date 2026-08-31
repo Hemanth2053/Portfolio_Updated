@@ -692,7 +692,7 @@ export default class Portfolio extends React.Component {
         dur: r.secs > 59 ? Math.floor(r.secs / 60) + 'm ' + (r.secs % 60) + 's' : r.secs + 's',
         state: r.state,
         style: {
-          height: RH + 'px', display: 'grid', gridTemplateColumns: '124px minmax(0,1fr) 110px 82px 96px',
+          height: RH + 'px', display: 'grid', gridTemplateColumns: '124px minmax(96px,1fr) 110px 82px 96px',
           alignItems: 'center', borderBottom: '1px solid rgba(211,224,247,.05)',
           background: r.hit && now - r.hit < 1100 ? 'rgba(127,169,240,.07)' : 'transparent',
           transition: 'background .8s ease'
@@ -1030,30 +1030,40 @@ export default class Portfolio extends React.Component {
                   <button type="button" onClick={v.table.onToggleLive} aria-pressed={v.table.livePressed} style={v.table.liveBtnStyle}>{v.table.liveLabel}</button>
                 </div>
               </div>
-              <div role="table" aria-label="Synthetic run log, 10,000 records" aria-rowcount={v.table.rowCount}>
-                <div role="rowgroup">
-                  <div role="row" style={{ display: 'grid', gridTemplateColumns: '124px minmax(0,1fr) 110px 82px 96px', padding: '0 clamp(14px,2vw,26px)', borderBottom: '1px solid rgba(168,185,212,.16)' }}>
-                    {v.table.cols.map(c => (
-                      <span key={c.key} role="columnheader" aria-sort={c.sort} style={c.cellStyle}>
-                        <button type="button" onClick={c.onClick} style={c.style}>{c.label}</button>
-                      </span>
-                    ))}
+              <div style={{ position: 'relative' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div role="table" aria-label="Synthetic run log, 10,000 records" aria-rowcount={v.table.rowCount} style={{ minWidth: '508px' }}>
+                  <div role="rowgroup">
+                    <div role="row" style={{ display: 'grid', gridTemplateColumns: '124px minmax(96px,1fr) 110px 82px 96px', padding: '0 clamp(14px,2vw,26px)', borderBottom: '1px solid rgba(168,185,212,.16)' }}>
+                      {v.table.cols.map(c => (
+                        <span key={c.key} role="columnheader" aria-sort={c.sort} style={c.cellStyle}>
+                          <button type="button" onClick={c.onClick} style={c.style}>{c.label}</button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div role="rowgroup" onScroll={v.table.onScroll} tabIndex={0} aria-label="Run rows, scrollable"
+                       style={{ height: '340px', overflowY: 'auto', position: 'relative', padding: '0 clamp(14px,2vw,26px)' }}>
+                    <div role="presentation" style={v.table.spacerStyle}><div role="presentation" style={v.table.windowStyle}>
+                      {v.table.rows.map(r => (
+                        <div key={r.key} role="row" aria-rowindex={r.ariaIndex} style={r.style}>
+                          <span role="rowheader" style={{ font: "400 11.5px/1.4 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.id}</span>
+                          <span role="cell" style={{ font: "400 13px/1 'Space Grotesk', sans-serif", color: '#EDF2FB', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.job}</span>
+                          <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.host}</span>
+                          <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#C4D2E8', textAlign: 'right' }}>{r.dur}</span>
+                          <span role="cell" style={r.stateStyle}>{r.state}</span>
+                        </div>
+                      ))}
+                    </div></div>
                   </div>
                 </div>
-                <div role="rowgroup" onScroll={v.table.onScroll} tabIndex={0} aria-label="Run rows, scrollable"
-                     style={{ height: '340px', overflowY: 'auto', position: 'relative', padding: '0 clamp(14px,2vw,26px)' }}>
-                  <div role="presentation" style={v.table.spacerStyle}><div role="presentation" style={v.table.windowStyle}>
-                    {v.table.rows.map(r => (
-                      <div key={r.key} role="row" aria-rowindex={r.ariaIndex} style={r.style}>
-                        <span role="rowheader" style={{ font: "400 11.5px/1.4 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.id}</span>
-                        <span role="cell" style={{ font: "400 13px/1 'Space Grotesk', sans-serif", color: '#EDF2FB', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.job}</span>
-                        <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#8DA0BF' }}>{r.host}</span>
-                        <span role="cell" style={{ font: "400 11px/1 'JetBrains Mono', monospace", color: '#C4D2E8', textAlign: 'right' }}>{r.dur}</span>
-                        <span role="cell" style={r.stateStyle}>{r.state}</span>
-                      </div>
-                    ))}
-                  </div></div>
                 </div>
+                {v.narrowMobile && (
+                  <span aria-hidden="true" style={{
+                    position: 'absolute', top: 0, right: 0, bottom: 0, width: '28px', pointerEvents: 'none',
+                    background: 'linear-gradient(90deg, transparent, #0C1A34)'
+                  }}></span>
+                )}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', padding: '15px clamp(14px,2vw,26px)', borderTop: '1px solid rgba(168,185,212,.16)', font: "400 10.5px/1.6 'JetBrains Mono', monospace", letterSpacing: '.12em', color: '#8DA0BF' }}>
                 <span>Rows <span style={{ color: '#EDF2FB' }}>{v.table.total}</span></span>
