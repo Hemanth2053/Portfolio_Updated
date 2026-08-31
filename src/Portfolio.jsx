@@ -602,7 +602,7 @@ export default class Portfolio extends React.Component {
     const hairLine = { flex: 1, height: '1px', background: 'rgba(168,185,212,.16)' };
     return (
       <React.Fragment>
-        <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(130% 85% at 50% -10%, rgba(127,169,240,.1), transparent 78%),radial-gradient(110% 80% at 88% 10%, rgba(90,169,255,.08), transparent 75%),linear-gradient(180deg,#081434 0%,#060E1F 46%,#050B18 100%)' }}></div>
+        <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(130vw 53vw at 50% -6.25vw, rgba(127,169,240,.1), transparent 78%),radial-gradient(110vw 50vw at 88% 6.25vw, rgba(90,169,255,.08), transparent 75%),linear-gradient(180deg,#081434 0%,#060E1F 46%,#050B18 100%)' }}></div>
         <div aria-hidden="true" ref={this.progressRef} style={v.progressStyle}></div>
 
         <nav aria-label="Sections" style={v.headerStyle}>
